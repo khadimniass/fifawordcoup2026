@@ -1,90 +1,98 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { MatchList } from './components/MatchList'
-import { GroupTables } from './components/GroupTable'
-import { useStandings } from './hooks/useStandings'
+import { GroupsPage } from './components/GroupsPage'
+import { CountriesPage } from './components/CountriesPage'
+import { FloatingBalls } from './components/FloatingBalls'
+import { SearchBar } from './components/SearchBar'
+import { TeamDetail } from './components/TeamDetail'
+import { TriviaCard } from './components/TriviaCard'
+import { TodayInHistory } from './components/TodayInHistory'
+import { ChampionsBar } from './components/ChampionsBar'
+import { TeamModalContext } from './context/teamModal'
 
-type Tab = 'matches' | 'groups'
-
-function GroupsView() {
-  const { data, isLoading, isError, error } = useStandings(2026)
-  if (isLoading) {
-    return (
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className="h-56 animate-pulse rounded-xl border border-white/10 bg-white/5"
-          />
-        ))}
-      </div>
-    )
-  }
-  if (isError || !data) {
-    return (
-      <p className="rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
-        Erreur de chargement des classements : {(error as Error)?.message}
-      </p>
-    )
-  }
-  return <GroupTables groups={data.groups} />
-}
+type Tab = 'matches' | 'groups' | 'countries'
 
 function App() {
   const [tab, setTab] = useState<Tab>('matches')
   const [now, setNow] = useState(() => Date.now())
+  const [team, setTeam] = useState<string | null>(null)
 
-  // Rafraîchit le "now" chaque minute pour les statuts live / à venir.
+  const openTeam = useCallback((name: string) => setTeam(name), [])
+
+  // Rafraîchit "now" chaque minute pour les statuts live / à venir.
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 60_000)
     return () => clearInterval(id)
   }, [])
 
   return (
-    <div className="mx-auto min-h-screen max-w-6xl px-4 py-8 sm:px-6">
-      <header className="mb-8">
-        <div className="flex items-center gap-3">
-          <span className="text-3xl">🏆</span>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Coupe du Monde 2026
-            </h1>
-            <p className="text-sm text-white/50">
-              Matchs en direct &amp; prédictions IA · 🇨🇦 🇲🇽 🇺🇸
-            </p>
+    <TeamModalContext.Provider value={openTeam}>
+      <FloatingBalls />
+
+      <div className="relative z-10 mx-auto min-h-screen max-w-6xl px-4 py-8 sm:px-6">
+        <header className="mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">🏆</span>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+                  Coupe du Monde 2026
+                </h1>
+                <p className="text-sm text-white/50">
+                  Matchs en direct &amp; prédictions IA · 🇨🇦 🇲🇽 🇺🇸
+                </p>
+              </div>
+            </div>
+            <SearchBar />
           </div>
+
+          <nav className="mt-6 flex gap-6 border-b border-white/10 text-sm">
+            {(
+              [
+                ['matches', 'Matchs'],
+                ['groups', 'Groupes'],
+                ['countries', 'Pays'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTab(key)}
+                className={`-mb-px border-b-2 px-1 pb-3 font-medium transition ${
+                  tab === key
+                    ? 'border-emerald-400 text-white'
+                    : 'border-transparent text-white/50 hover:text-white/80'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
+        </header>
+
+        <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
+          <main className="min-w-0">
+            {tab === 'matches' && <MatchList now={now} />}
+            {tab === 'groups' && <GroupsPage />}
+            {tab === 'countries' && <CountriesPage />}
+          </main>
+          <aside className="space-y-4">
+            <TriviaCard />
+            <TodayInHistory />
+          </aside>
         </div>
 
-        <nav className="mt-6 flex gap-1 rounded-lg bg-white/5 p-1 text-sm">
-          {(
-            [
-              ['matches', 'Matchs'],
-              ['groups', 'Groupes'],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              className={`rounded-md px-4 py-2 font-medium transition ${
-                tab === key
-                  ? 'bg-emerald-500 text-black'
-                  : 'text-white/60 hover:text-white'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-      </header>
+        <div className="mt-6">
+          <ChampionsBar />
+        </div>
 
-      <main>
-        {tab === 'matches' ? <MatchList now={now} /> : <GroupsView />}
-      </main>
+        <footer className="mt-12 border-t border-white/5 pt-4 text-center text-xs text-white/30">
+          Données : Zafronix WC API · Prédictions : modèle ML (predict_ml)
+        </footer>
+      </div>
 
-      <footer className="mt-12 border-t border-white/5 pt-4 text-center text-xs text-white/30">
-        Données : Zafronix WC API · Prédictions : modèle stub (API ML à venir)
-      </footer>
-    </div>
+      {team && <TeamDetail team={team} onClose={() => setTeam(null)} />}
+    </TeamModalContext.Provider>
   )
 }
 

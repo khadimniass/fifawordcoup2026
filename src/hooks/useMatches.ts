@@ -7,6 +7,6 @@ export function useMatches(year = 2026) {
     queryKey: ['matches', year],
     queryFn: () => getMatches(year),
     refetchInterval: 5 * 60 * 1000,
-    staleTime: 4 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   })
 }

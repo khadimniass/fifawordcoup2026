@@ -3,9 +3,17 @@
 
 import type {
   BracketResponse,
+  ChampionsResponse,
   MatchesResponse,
+  OnThisDayResponse,
+  RosterPlayer,
+  SearchResponse,
+  SearchType,
   StandingsResponse,
+  TeamDetail,
   Tournament,
+  Tournament2026,
+  TriviaItem,
 } from './types'
 
 const BASE = import.meta.env.VITE_ZAFRONIX_BASE_URL as string
@@ -17,11 +25,18 @@ const cache: Record<string, { etag: string; body: unknown }> = {}
 export class ZafronixError extends Error {
   status: number
   path: string
-  constructor(status: number, path: string, message?: string) {
+  retryAfter: number | null // secondes, renseigné sur un 429
+  constructor(
+    status: number,
+    path: string,
+    message?: string,
+    retryAfter: number | null = null,
+  ) {
     super(message ?? `Zafronix ${status} sur ${path}`)
     this.name = 'ZafronixError'
     this.status = status
     this.path = path
+    this.retryAfter = retryAfter
   }
 }
 
@@ -51,6 +66,17 @@ export async function zafronixFetch<T>(path: string): Promise<T> {
     } catch {
       /* corps non-JSON, on garde le message par défaut */
     }
+    // 429 : quota atteint → exposer le délai du header Retry-After.
+    if (res.status === 429) {
+      const ra = Number(res.headers.get('Retry-After'))
+      const retryAfter = Number.isFinite(ra) && ra > 0 ? ra : 60
+      throw new ZafronixError(
+        429,
+        path,
+        `Quota API atteint, réessai dans ${retryAfter}s`,
+        retryAfter,
+      )
+    }
     throw new ZafronixError(res.status, path, message)
   }
 
@@ -71,3 +97,28 @@ export const getStandings = (year = 2026) =>
 
 export const getBracket = (year = 2026) =>
   zafronixFetch<BracketResponse>(`/bracket?year=${year}`)
+
+export const getTournament2026 = () =>
+  zafronixFetch<Tournament2026>('/tournaments/2026')
+
+export const getTeam = (name: string) =>
+  zafronixFetch<TeamDetail>(`/teams/${encodeURIComponent(name)}`)
+
+export const getRoster = (name: string, year = 2026) =>
+  zafronixFetch<RosterPlayer[]>(
+    `/teams/${encodeURIComponent(name)}/roster?year=${year}`,
+  )
+
+export const getTrivia = (year = 2026) =>
+  zafronixFetch<TriviaItem[]>(`/trivia?year=${year}`)
+
+export const getOnThisDay = () =>
+  zafronixFetch<OnThisDayResponse>('/on-this-day')
+
+export const getChampions = () =>
+  zafronixFetch<ChampionsResponse>('/aggregates/champions')
+
+export const search = (query: string, types: SearchType[]) =>
+  zafronixFetch<SearchResponse>(
+    `/search?q=${encodeURIComponent(query)}&types=${types.join(',')}`,
+  )

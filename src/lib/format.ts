@@ -20,15 +20,30 @@ export function groupKey(stage: string | null): string | null {
   return null
 }
 
+// Date affichée en UTC (GMT+0) pour homogénéiser tous les fuseaux des stades.
 const DATE_FMT = new Intl.DateTimeFormat('fr-FR', {
   weekday: 'short',
   day: 'numeric',
   month: 'short',
+  timeZone: 'UTC',
 })
 
-export function formatMatchDate(iso: string): string {
-  const d = new Date(`${iso}T00:00:00`)
-  return DATE_FMT.format(d)
+// Heure affichée en UTC (GMT+0).
+const TIME_FMT = new Intl.DateTimeFormat('fr-FR', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'UTC',
+})
+
+// Date du coup d'envoi en GMT+0, dérivée de kickoffUtc.
+export function formatMatchDate(kickoffUtc: string): string {
+  return DATE_FMT.format(new Date(kickoffUtc))
+}
+
+// Heure du coup d'envoi en GMT+0 (suffixe "GMT").
+export function formatKickoffTime(kickoffUtc: string): string {
+  return `${TIME_FMT.format(new Date(kickoffUtc))} GMT`
 }
 
 export type MatchStatus = 'upcoming' | 'live' | 'finished'

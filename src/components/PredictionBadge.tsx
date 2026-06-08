@@ -1,8 +1,14 @@
 import type { Match } from '../api/types'
 import { usePrediction } from '../hooks/usePrediction'
 
-// Badge de prédiction IA : barre 3 classes (victoire 1 / nul / victoire 2).
-// Alimenté pour l'instant par un stub local (cf. usePrediction).
+const CONFIDENCE_LABEL = {
+  low: 'confiance faible',
+  medium: 'confiance moyenne',
+  high: 'confiance élevée',
+} as const
+
+// Badge de prédiction : barre 3 classes (victoire 1 / nul / victoire 2).
+// Alimenté par l'API ML (predict_ml) ; repli sur un stub si l'API est éteinte.
 export function PredictionBadge({ match }: { match: Match }) {
   const { data, isLoading } = usePrediction(match)
 
@@ -19,11 +25,19 @@ export function PredictionBadge({ match }: { match: Match }) {
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-white/40">
+      <div className="flex flex-wrap items-center gap-2 text-[11px] uppercase tracking-wide text-white/40">
         <span className="rounded bg-white/10 px-1.5 py-0.5 font-medium text-white/60">
           Prédiction IA
         </span>
-        <span className="text-white/30">(modèle stub)</span>
+        {data.source === 'ml' ? (
+          data.confidence && (
+            <span className="text-white/35">
+              {CONFIDENCE_LABEL[data.confidence]}
+            </span>
+          )
+        ) : (
+          <span className="text-amber-300/50">modèle stub (API ML hors ligne)</span>
+        )}
       </div>
       <div className="flex h-7 overflow-hidden rounded-md ring-1 ring-white/10">
         {segs.map((s) => (
