@@ -37,7 +37,7 @@ npm install
 
 ```
 Base URL   : https://api.zafronix.com/fifa/worldcup/v1
-Auth Header: X-API-Key: zwc_free_76e29d8b3d1531a27d30fe8d
+Auth Header: X-API-Key: <VOTRE_CLE_ZAFRONIX>   # inscription sur api.zafronix.com/signup
 Free tier  : 250 req/jour
 ```
 
@@ -81,7 +81,7 @@ X-RateLimit-Reset      # epoch seconds du prochain reset
 
 ```
 Base URL   : https://api.football-data.org/v4
-Auth Header: X-Auth-Token: 69a6d33333f4479a827211c470030115
+Auth Header: X-Auth-Token: <VOTRE_TOKEN_FOOTBALL_DATA>   # inscription sur football-data.org
 Free tier  : 10 req/min
 WC code    : WC
 ```
@@ -112,7 +112,7 @@ Créer `.env` à la racine du projet Vite :
 
 ```env
 # Zafronix WC API (principale)
-VITE_ZAFRONIX_API_KEY=zwc_free_76e29d8b3d1531a27d30fe8d
+VITE_ZAFRONIX_API_KEY=<VOTRE_CLE_ZAFRONIX>
 VITE_ZAFRONIX_BASE_URL=https://api.zafronix.com/fifa/worldcup/v1
 
 # ML API (FastAPI)

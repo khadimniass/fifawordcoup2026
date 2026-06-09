@@ -54,7 +54,7 @@ vers son sous-dossier via le réglage **Root Directory**.
 2. **Root Directory** : `world-coupe-2026` (Vercel détecte Vite tout seul).
 3. **Environment Variables** :
    - `VITE_ML_API_URL` = l'URL Render de l'étape 1
-   - `VITE_ZAFRONIX_API_KEY` = `zwc_free_76e29d8b3d1531a27d30fe8d`
+   - `VITE_ZAFRONIX_API_KEY` = `<votre clé Zafronix>` (api.zafronix.com/signup)
    - `VITE_ZAFRONIX_BASE_URL` = `https://api.zafronix.com/fifa/worldcup/v1`
 4. **Deploy**. Note l'URL, ex : `https://world-coupe-2026.vercel.app`.
 
